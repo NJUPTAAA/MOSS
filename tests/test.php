@@ -3,7 +3,7 @@
     use MOSS\MOSS;
     $userid = ""; // Enter your MOSS userid
     $moss = new MOSS($userid);
-    $moss->setLanguage('java');
+    $moss->setLanguage('cc');
     $moss->addByWildcard('test/codes/*');
     $moss->setCommentString("This is a test");
     echo json_decode($moss->send(), JSON_PRETTY_PRINT);
