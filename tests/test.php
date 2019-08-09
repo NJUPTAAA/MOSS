@@ -5,6 +5,5 @@
     $moss = new MOSS($userid);
     $moss->setLanguage('java');
     $moss->addByWildcard('test/codes/*');
-    $moss->addBaseFile('codes/Example.java');
     $moss->setCommentString("This is a test");
     echo json_decode($moss->send(), JSON_PRETTY_PRINT);
