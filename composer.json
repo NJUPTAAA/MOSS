@@ -1,0 +1,21 @@
+{
+    "version": "1.0.0",
+    "name": "njuptaaa/moss",
+    "description": "Stanford MOSS Interface, for a Measure Of Software Similarity.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ZsgsDesign",
+            "email": "zsgsdesign@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "MOSS\\": "src/"
+        }
+    }
+}
