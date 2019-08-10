@@ -4,6 +4,6 @@
     $userid = ""; // Enter your MOSS userid
     $moss = new MOSS($userid);
     $moss->setLanguage('cc');
-    $moss->addByWildcard('test/codes/*');
+    $moss->addByWildcard('codes/*');
     $moss->setCommentString("This is a test");
-    echo json_decode($moss->send(), JSON_PRETTY_PRINT);
+    echo $moss->send();
