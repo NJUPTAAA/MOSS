@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "name": "njuptaaa/moss",
     "description": "Stanford MOSS Interface, for a Measure Of Software Similarity.",
     "type": "library",
