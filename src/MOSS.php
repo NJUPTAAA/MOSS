@@ -2,6 +2,9 @@
  
 namespace MOSS;
 
+use Exception;
+use KubAT\PhpSimple\HtmlDomParser;
+
 class MOSS
 {
     private $allowed_languages = ["c", "cc", "java", "ml", "pascal", "ada", "lisp", "scheme", "haskell", "fortran", "ascii", "vhdl", "perl", "matlab", "python", "mips", "prolog", "spice", "vb", "csharp", "modula2", "a8086", "javascript", "plsql", "verilog"];
@@ -11,6 +14,7 @@ class MOSS
     private $server;
     private $port;
     private $userid;
+    private $color=['#f00','#0f0','#00f','#0ff','#f0f'];
     
     /**
      * @param int  	  $userid
@@ -200,7 +204,51 @@ class MOSS
             $read = fgets($socket);
             fwrite($socket, "end\n");
             fclose($socket);
-            return $read;
+            return (int)explode('results/', $read)[1];
+        }
+    }
+
+    /**
+     * Save MOSS report to local
+     * @return bool
+     */
+    public function saveTo($path, $id)
+    {
+        $url="http://$this->server/results/$id";
+        $generalPage=HtmlDomParser::str_get_html(file_get_contents($url), true, true, DEFAULT_TARGET_CHARSET, false);
+        $table=$generalPage->find('table', 0);
+        if(is_null($table)) throw new Exception('Report Not Found');
+        if(!is_dir($path)) mkdir($path);
+        foreach($table->find('a') as $a){
+            $a->href=explode("/results/$id/",$a->href)[1];
+        }
+        file_put_contents($path.DIRECTORY_SEPARATOR.'index.html', $table->outertext);
+        $this->fetchDetails($path, $id, count($table->find('a'))/2);
+    }
+
+    private function fetchDetails($path, $id, $count)
+    {
+        foreach (range(0,$count-1) as $case){
+            foreach (range(0,1) as $index){
+                $url="http://$this->server/results/$id/match$case-$index.html";
+                $detailedPage=HtmlDomParser::str_get_html(file_get_contents($url), true, true, DEFAULT_TARGET_CHARSET, false);
+                $code=$detailedPage->find('pre', 0);
+                foreach($code->find('img') as $img){
+                    [$color, $percentage]=explode('_',explode('.gif', explode('bitmaps/tm_', $img->src)[1])[0]);
+                    $color=$this->color[(int)$color];
+                    $img->tag="div";
+                    $img->style="
+                        background-image: linear-gradient(to right, $color $percentage%,#fff $percentage%);
+                        border: 1px solid $color;
+                        width: 60px;
+                        height: 12px;
+                    ";
+                }
+                file_put_contents($path.DIRECTORY_SEPARATOR."match$case-$index.html", $code->outertext);
+            }
+            file_put_contents($path.DIRECTORY_SEPARATOR."match$case.html", '
+                <frameset cols="50%,50%" rows="100%"><frame src="match0-0.html" name="0"><frame src="match0-1.html" name="1"></frameset>
+            ');
         }
     }
     
