@@ -219,7 +219,7 @@ class MOSS
         $generalPage=HtmlDomParser::str_get_html(file_get_contents($url), true, true, DEFAULT_TARGET_CHARSET, false);
         $table=$generalPage->find('table', 0);
         if(is_null($table)) throw new Exception('Report Not Found');
-        if(!is_dir($path)) mkdir($path);
+        if(!is_dir($path)) mkdir($path, '0777', true);
         foreach($table->find('a') as $a){
             $a->href=explode("/results/$id/",$a->href)[1];
         }
