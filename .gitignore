@@ -2,3 +2,4 @@
 /composer.lock
 /.vscode
 /tests/report
+/tests/exec.php

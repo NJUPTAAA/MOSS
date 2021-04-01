@@ -205,7 +205,7 @@ class MOSS
             fwrite($socket, "end\n");
             fclose($socket);
             if($read===false) throw new Exception("Unexpected Error", -1);
-            return (int)explode('results/', $read)[1];
+            return trim(explode('results/', $read)[1]);
         }
     }
 
