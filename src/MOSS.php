@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace MOSS;
 
 use Exception;
@@ -14,8 +14,8 @@ class MOSS
     private $server;
     private $port;
     private $userid;
-    private $color=['#f00','#0f0','#00f','#0ff','#f0f'];
-    
+    private $color = ['#f00', '#0f0', '#00f', '#0ff', '#f0f'];
+
     /**
      * @param int  	  $userid
      * @param string  $server
@@ -83,7 +83,7 @@ class MOSS
             $this->basefiles[] = $file;
             return true;
         } else {
-            throw new Exception("Can't find or read the basefile (".$file.")", 3);
+            throw new Exception("Can't find or read the basefile (" . $file . ")", 3);
         }
     }
 
@@ -153,7 +153,7 @@ class MOSS
             $this->files[] = $file;
             return true;
         } else {
-            throw new Exception("Can't find or read the file (".$file.")", 7);
+            throw new Exception("Can't find or read the file (" . $file . ")", 7);
         }
     }
 
@@ -177,15 +177,15 @@ class MOSS
     {
         $socket = fsockopen($this->server, $this->port, $errno, $errstr);
         if (!$socket) {
-            throw new Exception("Socket-Error: ".$errstr." (".$errno.")", 8);
+            throw new Exception("Socket-Error: " . $errstr . " (" . $errno . ")", 8);
         } else {
-            fwrite($socket, "moss ".$this->userid."\n");
-            fwrite($socket, "directory ".$this->options['d']."\n");
-            fwrite($socket, "X ".$this->options['x']."\n");
-            fwrite($socket, "maxmatches ".$this->options['m']."\n");
-            fwrite($socket, "show ".$this->options['n']."\n");
+            fwrite($socket, "moss " . $this->userid . "\n");
+            fwrite($socket, "directory " . $this->options['d'] . "\n");
+            fwrite($socket, "X " . $this->options['x'] . "\n");
+            fwrite($socket, "maxmatches " . $this->options['m'] . "\n");
+            fwrite($socket, "show " . $this->options['n'] . "\n");
             //Language Check
-            fwrite($socket, "language ".$this->options['l']."\n");
+            fwrite($socket, "language " . $this->options['l'] . "\n");
             $read = trim(fgets($socket));
             if ($read == "no") {
                 fwrite($socket, "end\n");
@@ -200,11 +200,11 @@ class MOSS
                 $this->uploadFile($socket, $file, $i);
                 $i++;
             }
-            fwrite($socket, "query 0 ".$this->options['c']."\n");
+            fwrite($socket, "query 0 " . $this->options['c'] . "\n");
             $read = fgets($socket);
             fwrite($socket, "end\n");
             fclose($socket);
-            if($read===false) throw new Exception("Unexpected Error", -1);
+            if ($read === false) throw new Exception("Unexpected Error", -1);
             return trim(explode('results/', $read)[1]);
         }
     }
@@ -215,44 +215,45 @@ class MOSS
      */
     public function saveTo($path, $id)
     {
-        $url="http://$this->server/results/$id";
-        $generalPage=HtmlDomParser::str_get_html(file_get_contents($url), true, true, DEFAULT_TARGET_CHARSET, false);
-        $table=$generalPage->find('table', 0);
-        if(is_null($table)) throw new Exception('Report Not Found');
-        if(!is_dir($path)) mkdir($path, '0777', true);
-        foreach($table->find('a') as $a){
-            $a->href=explode("/results/$id/",$a->href)[1];
+        $url = "http://$this->server/results/$id";
+        $generalPage = HtmlDomParser::str_get_html($this->file_get_contents_retry($url), true, true, DEFAULT_TARGET_CHARSET, false);
+        $table = $generalPage->find('table', 0);
+        if (is_null($table)) throw new Exception('Report Not Found');
+        if (!is_dir($path)) mkdir($path, '0777', true);
+        foreach ($table->find('a') as $a) {
+            $a->href = explode("/results/$id/", $a->href)[1];
+            $a->innertext = end(explode("/", $a->innertext));
         }
-        file_put_contents($path.DIRECTORY_SEPARATOR.'index.html', $table->outertext);
-        $this->fetchDetails($path, $id, count($table->find('a'))/2);
+        file_put_contents($path . DIRECTORY_SEPARATOR . 'index.html', $table->outertext);
+        $this->fetchDetails($path, $id, count($table->find('a')) / 2);
     }
 
     private function fetchDetails($path, $id, $count)
     {
-        foreach (range(0,$count-1) as $case){
-            foreach (range(0,1) as $index){
-                $url="http://$this->server/results/$id/match$case-$index.html";
-                $detailedPage=HtmlDomParser::str_get_html(file_get_contents($url), true, true, DEFAULT_TARGET_CHARSET, false);
-                $code=$detailedPage->find('pre', 0);
-                foreach($code->find('img') as $img){
-                    [$color, $percentage]=explode('_',explode('.gif', explode('bitmaps/tm_', $img->src)[1])[0]);
-                    $color=$this->color[(int)$color];
-                    $img->tag="div";
-                    $img->style="
+        foreach (range(0, $count - 1) as $case) {
+            foreach (range(0, 1) as $index) {
+                $url = "http://$this->server/results/$id/match$case-$index.html";
+                $detailedPage = HtmlDomParser::str_get_html($this->file_get_contents_retry($url), true, true, DEFAULT_TARGET_CHARSET, false);
+                $code = $detailedPage->find('pre', 0);
+                foreach ($code->find('img') as $img) {
+                    [$color, $percentage] = explode('_', explode('.gif', explode('bitmaps/tm_', $img->src)[1])[0]);
+                    $color = $this->color[(int)$color];
+                    $img->tag = "div";
+                    $img->style = "
                         background-image: linear-gradient(to right, $color $percentage%,#fff $percentage%);
                         border: 1px solid $color;
                         width: 60px;
                         height: 12px;
                     ";
                 }
-                file_put_contents($path.DIRECTORY_SEPARATOR."match$case-$index.html", $code->outertext);
+                file_put_contents($path . DIRECTORY_SEPARATOR . "match$case-$index.html", $code->outertext);
             }
-            file_put_contents($path.DIRECTORY_SEPARATOR."match$case.html", '
+            file_put_contents($path . DIRECTORY_SEPARATOR . "match$case.html", '
                 <frameset cols="50%,50%" rows="100%"><frame src="match0-0.html" name="0"><frame src="match0-1.html" name="1"></frameset>
             ');
         }
     }
-    
+
     /**
      * Upload a file to the server
      * @param  socket $handle A handle from fsockopen
@@ -264,7 +265,19 @@ class MOSS
     {
         $size = filesize($file);
         $file_name_fixed = str_replace(" ", "_", $file);
-        fwrite($handle, "file ".$id." ".$this->options['l']." ".$size." ".$file_name_fixed."\n");
+        fwrite($handle, "file " . $id . " " . $this->options['l'] . " " . $size . " " . $file_name_fixed . "\n");
         fwrite($handle, file_get_contents($file));
+    }
+
+    private function file_get_contents_retry($url, $attemptsRemaining = 10)
+    {
+        $content = @file_get_contents($url);
+        $attemptsRemaining--;
+
+        if (empty($content) && $attemptsRemaining > 0) {
+            return $this->file_get_contents_retry($url, $attemptsRemaining);
+        }
+
+        return $content;
     }
 }
