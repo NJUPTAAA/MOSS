@@ -222,8 +222,6 @@ class MOSS
         if (!is_dir($path)) mkdir($path, '0777', true);
         foreach ($table->find('a') as $a) {
             $a->href = explode("/results/$id/", $a->href)[1];
-            $tempArr=explode("/", $a->innertext);
-            $a->innertext = end($tempArr);
         }
         file_put_contents($path . DIRECTORY_SEPARATOR . 'index.html', $table->outertext);
         $this->fetchDetails($path, $id, count($table->find('a')) / 2);
